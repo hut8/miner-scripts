@@ -1,0 +1,85 @@
+#!/usr/bin/bash
+set -euo pipefail
+p2pool_release="https://github.com/SChernykh/p2pool/releases/download/v3.8/p2pool-v3.8-linux-x64.tar.gz"
+xmrig_release="https://github.com/xmrig/xmrig/releases/download/v6.21.0/xmrig-6.21.0-linux-static-x64.tar.gz"
+monero_release="https://downloads.getmonero.org/cli/monero-linux-x64-v0.18.3.1.tar.bz2"
+
+mkdir -p /tmp/cryptominer
+
+(
+    cd /tmp/cryptominer
+
+    if [[ ! -f /usr/local/bin/monerod ]]
+    then
+        echo "installing monero"
+        wget "$monero_release"
+        tar xvf monero-linux-x64*.tar.bz2 && rm monero-linux-x64*.tar.bz2
+        (
+            cd monero-linux-x64*
+            sudo mv --target-directory /usr/local/bin \
+                 monerod \
+                 monero-blockchain-ancestry \
+                 monero-blockchain-depth \
+                 monero-blockchain-export \
+                 monero-blockchain-import \
+                 monero-blockchain-mark-spent-outputs \
+                 monero-blockchain-prune \
+                 monero-blockchain-prune-known-spent-data \
+                 monero-blockchain-stats \
+                 monero-blockchain-usage \
+                 monero-gen-ssl-cert \
+                 monero-gen-trusted-multisig \
+                 monero-wallet-cli \
+                 monero-wallet-rpc
+        )
+    else
+        echo "monero already installed"
+    fi
+
+    if [[ ! -f /usr/local/bin/p2pool ]]
+    then
+        echo "installing p2pool"
+        wget "$p2pool_release"
+        tar xvf p2pool-*.tar.gz && rm p2pool-*.tar.gz
+        (
+            cd p2pool-*
+            sudo mv p2pool /usr/local/bin/p2pool
+        )
+    else
+        echo "p2pool already exists"
+    fi
+
+    if [[ ! -f /usr/local/bin/xmrig ]]
+    then
+        echo "Installing xmrig"
+        wget "$xmrig_release"
+        tar xvf xmrig-*
+        sudo mv xmrig-*/xmrig /usr/local/bin/xmrig
+    else
+        echo "xmrig already installed"
+    fi
+)
+
+rm -rf /tmp/cryptominer
+
+sudo ln crypto-miner.conf /etc/crypto-miner.conf
+
+for x in *.service
+do
+    sudo ln "$x" "/etc/systemd/system/$x"
+done
+
+sudo systemctl daemon-reload
+for x in *.service
+do
+    sudo systemctl enable "$x"
+done
+
+echo 'To download the monero blockchain, run:'
+echo 'aria2c --max-connection-per-server 4  https://downloads.getmonero.org/blockchain.raw'
+echo 'monero-blockchain-import --input-file blockchain.raw'
+echo
+echo "Then enable services:"
+echo "sudo systemctl start monerod.service"
+echo "sudo systemctl start p2pool.service"
+echo "sudo systemctl start xmrig.service"
