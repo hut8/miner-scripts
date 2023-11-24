@@ -1,0 +1,15 @@
+[Unit]
+Description=XMRig
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+EnvironmentFile=/etc/crypto-miner.conf
+User=monero
+ExecStart=/usr/local/bin/xmrig -o 127.0.0.1:3333
+
+[Install]
+WantedBy=multi-user.target

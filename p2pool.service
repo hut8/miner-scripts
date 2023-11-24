@@ -1,0 +1,17 @@
+[Unit]
+Description=P2Pool
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+EnvironmentFile=/etc/crypto-miner.conf
+User=monero
+ExecStart=/usr/local/bin/p2pool \
+    --host 0.0.0.0 \
+    --wallet ${WALLET_ADDRESS}
+
+[Install]
+WantedBy=multi-user.target
