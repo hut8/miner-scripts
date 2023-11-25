@@ -62,11 +62,11 @@ mkdir -p /tmp/cryptominer
 
 rm -rf /tmp/cryptominer
 
-sudo ln crypto-miner.conf /etc/crypto-miner.conf
+sudo ln -f crypto-miner.conf /etc/crypto-miner.conf
 
 for x in *.service
 do
-    sudo ln "$x" "/etc/systemd/system/$x"
+    sudo ln -f "$x" "/etc/systemd/system/$x"
 done
 
 sudo systemctl daemon-reload
@@ -76,8 +76,9 @@ do
 done
 
 echo 'To download the monero blockchain, run:'
+echo 'cd /tmp'
 echo 'aria2c --max-connection-per-server 4  https://downloads.getmonero.org/blockchain.raw'
-echo 'monero-blockchain-import --input-file blockchain.raw'
+echo 'sudo -u monero monero-blockchain-import --data-dir /var/lib/monero --input-file /tmp/blockchain.raw'
 echo
 echo "Then enable services:"
 echo "sudo systemctl start monerod.service"
